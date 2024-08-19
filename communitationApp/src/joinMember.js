@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import {JoinMember} from "./joinMember"
 
-const handleLogin = (email, password) => {
-  Alert.alert('Login Info', `Email: ${email}\nPassword: ${password}`);
-};
-
-const LoginScreen = () => {
+const joinMember = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,13 +22,8 @@ const LoginScreen = () => {
         secureTextEntry
         style={styles.input}
       />
-      <Button
-        onPress={() => handleLogin(email, password)}
-        style={styles.button}
-      >
-        Login
-      </Button>
-      <TouchableOpacity onPress={JoinMember}>
+
+      <TouchableOpacity onPress={() => Alert.alert('Sign Up', 'Sign Up button pressed')}>
         <Text style={styles.link}>회원가입</Text>
       </TouchableOpacity>
     </View>
@@ -41,30 +31,31 @@ const LoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 16,
-    backgroundColor: '#fff'
-  },
-  link: {
-    marginTop: 16,
-    color: '#007BFF',
-    textAlign: 'center',
-  },
-});
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      padding: 16,
+      backgroundColor: '#fff',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    input: {
+      marginBottom: 16,
+    },
+    button: {
+      marginTop: 16,
+      backgroundColor: '#fff'
+    },
+    link: {
+      marginTop: 16,
+      color: '#007BFF',
+      textAlign: 'center',
+    },
+  });
+  
 
-export default LoginScreen;
+export default joinMember;

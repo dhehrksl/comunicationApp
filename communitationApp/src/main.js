@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import {JoinMember} from "./joinMember"
 
-const handleLogin = (email, password) => {
-  Alert.alert('Login Info', `Email: ${email}\nPassword: ${password}`);
-};
-
-const LoginScreen = () => {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleLogin = () => {
+    // 로그인 로직을 추가할 수 있습니다.
+    Alert.alert('Login Info', `Email: ${email}\nPassword: ${password}`);
+    // 로그인 후 homepage로 이동
+    navigation.navigate('HomePage');
+  };
 
   return (
     <View style={styles.container}>
@@ -28,12 +30,12 @@ const LoginScreen = () => {
         style={styles.input}
       />
       <Button
-        onPress={() => handleLogin(email, password)}
+        onPress={handleLogin}
         style={styles.button}
       >
-        Login
+        로그인
       </Button>
-      <TouchableOpacity onPress={JoinMember}>
+      <TouchableOpacity onPress={() => navigation.navigate('Join')}>
         <Text style={styles.link}>회원가입</Text>
       </TouchableOpacity>
     </View>
@@ -58,7 +60,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 16,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   link: {
     marginTop: 16,

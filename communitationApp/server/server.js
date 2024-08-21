@@ -28,18 +28,21 @@ db.connect(err => {
 
 
 app.post('/data', (req, res) => {
-  const { userEmail, userPassWord } = req.body;
-  const sql = 'INSERT INTO userdata (userEmail, userPassWord) VALUES (?, ?)';
-  db.query(sql, [userEmail, userPassWord], (err, results) => {
-    if (err) {
-      console.error('Error inserting data:', err);
-      res.status(500).json({ error: '인터넷 오류' });
-      return;
-    }
-    res.status(201).json({ id: results.insertId });
+    const { userEmail, userPassWord, userName } = req.body;
+  
+    console.log('Received data:', { userEmail, userPassWord, userName });
+  
+    const sql = 'INSERT INTO userdata (userEmail, userPassWord, userName) VALUES (?, ?, ?)';
+    db.query(sql, [userEmail, userPassWord, userName], (err, results) => {
+      if (err) {
+        console.error('Error inserting data:', err);
+        res.status(500).json({ error: 'Error inserting data' });
+        return;
+      }
+      res.status(201).json({ id: results.insertId });
+    });
   });
-});
-
+  
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });

@@ -5,7 +5,7 @@ import { TextInput, Button } from 'react-native-paper';
 const JoinMember = () => {
   const [joinEmail, setJoinEmail] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
-
+  const [joinUserName, setJoinUserName] = useState('');
 
   const handleSignUp = () => {
     fetch('http://192.168.0.27:3309/data', {
@@ -13,7 +13,7 @@ const JoinMember = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ userEmail: joinEmail, userPassWord: joinPassword }),
+      body: JSON.stringify({ userEmail: joinEmail, userPassWord: joinPassword, userName: joinUserName }),
     })
       .then(response => response.json())
       .then(data => {
@@ -29,17 +29,24 @@ const JoinMember = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>회원가입</Text>
-      <TextInput
-        label="Email"
-        value={joinEmail}
-        onChangeText={text => setJoinEmail(text)}
-        style={styles.input}
-      />
+        <TextInput
+          label="Email"
+          value={joinEmail}
+          onChangeText={text => setJoinEmail(text)}
+          style={styles.input}
+        />
+        <Button></Button>
       <TextInput
         label="Password"
         value={joinPassword}
         onChangeText={text => setJoinPassword(text)}
         secureTextEntry
+        style={styles.input}
+      />
+      <TextInput
+        label="Name"
+        value={joinUserName}
+        onChangeText={text => setJoinUserName(text)}
         style={styles.input}
       />
       <Button onPress={handleSignUp} mode="contained" style={styles.button}>

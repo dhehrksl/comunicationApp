@@ -7,15 +7,13 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    // 로그인 로직을 추가할 수 있습니다.
     Alert.alert('Login Info', `Email: ${email}\nPassword: ${password}`);
-    // 로그인 후 homepage로 이동
     navigation.navigate('HomePage');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>로그인</Text>
       <TextInput
         label="Email"
         value={email}
@@ -36,7 +34,7 @@ const LoginScreen = ({ navigation }) => {
         로그인
       </Button>
       <TouchableOpacity onPress={() => navigation.navigate('Join')}>
-        <Text style={styles.link}>회원가입</Text>
+        <Text style={styles.link}>가입하기</Text>
       </TouchableOpacity>
     </View>
   );

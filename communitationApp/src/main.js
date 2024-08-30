@@ -1,40 +1,71 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, TextInput, Pressable } from 'react-native';
+import axios from 'axios';
+
+const apiUrl = 'http://192.168.0.27:3309';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signInEnabled, setSignInEnabled] = useState(false);
 
-  const handleLogin = () => {
-    Alert.alert('Login Info', `Email: ${email}\nPassword: ${password}`);
-    navigation.navigate('HomePage');
+  const handleLogin = async () => {
+    if (!email || !validateEmail(email)) {
+      Alert.alert("올바른 이메일을 입력해주세요");
+    } else if (!password) {
+      Alert.alert("비밀번호를 입력해주세요");
+    } else {
+      try {
+        const response = await axios.post(`${apiUrl}/login`, { email, password });
+        console.log('로그인 성공:', response.data);
+        navigation.navigate('HomeTabs', {
+          screen: 'HomeScreen',
+          params: { email }, // Pass email here
+        });
+        
+      } catch (error) {
+        console.error('로그인 실패:', error);
+        Alert.alert("이메일과 비밀번호를 확인해주세요");
+      }
+      setEmail('');
+      setPassword('');
+      setSignInEnabled(false);
+    }
   };
+  
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  useEffect(() => {
+    setSignInEnabled(email.trim() !== '' && password.trim() !== '');
+  }, [email, password]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>로그인</Text>
       <TextInput
-        label="Email"
+        placeholder="Email"
         value={email}
         onChangeText={text => setEmail(text)}
         style={styles.input}
       />
       <TextInput
-        label="Password"
+        placeholder="Password"
         value={password}
         onChangeText={text => setPassword(text)}
         secureTextEntry
         style={styles.input}
       />
-      <Button
-        onPress={handleLogin}
+      <Pressable
+        onPress={signInEnabled ? handleLogin : null}
+        disabled={!signInEnabled}
         style={styles.button}
       >
-        로그인
-      </Button>
+        <Text>로그인</Text>
+      </Pressable>
       <TouchableOpacity onPress={() => navigation.navigate('Join')}>
-        <Text style={styles.link}>가입하기</Text>
+        <Text style={styles.signupLink}>회원가입</Text>
       </TouchableOpacity>
     </View>
   );
@@ -44,25 +75,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 24,
-    textAlign: 'center',
+    marginBottom: 20,
   },
   input: {
-    marginBottom: 16,
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
   button: {
-    marginTop: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#007bff',
+    borderRadius: 5,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  link: {
-    marginTop: 16,
-    color: '#007BFF',
+  signupLink: {
+    color: '#007bff',
     textAlign: 'center',
   },
 });

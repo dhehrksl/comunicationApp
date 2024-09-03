@@ -58,57 +58,122 @@ app.get('/posts', (req, res) => {
   });
 });
 
+app.get('/allPosts/:email', (req, res) => {
+  const { email } = req.params;
+  const query = 'SELECT * FROM posts WHERE email = ?';
 
-
-
-// 좋아요 처리
-app.post('/posts/like/:postId', (req, res) => {
-  const { userId } = req.body;
-  const { postId } = req.params;
-
-  const query = 'INSERT INTO likes (email, postId) VALUES (?, ?)';
-
-  db.query(query, [userId, postId], (err) => {
+  db.query(query, [email], (err, results) => {
     if (err) {
-      console.error('좋아요 처리 오류:', err);
-      return res.status(500).send('서버 내부 오류.');
+      console.error('데이터베이스 쿼리 오류:', err);
+      return res.status(500).send('서버 오류.');
     }
-    res.status(200).send('좋아요 처리 성공.');
+    res.json(results);
   });
 });
 
-// 좋아요 취소
-app.post('/posts/unlike/:postId', (req, res) => {
-  const { userId } = req.body;
-  const { postId } = req.params;
 
-  const query = 'DELETE FROM likes WHERE email = ? AND postId = ?';
 
-  db.query(query, [userId, postId], (err) => {
+
+app.put('/profile', (req, res) => {
+  const { email, username, profileImage } = req.body;
+
+  const query = 'UPDATE userdata SET name = ?, profileImage = ? WHERE email = ?';
+  db.query(query, [username, profileImage, email], (err, results) => {
     if (err) {
-      console.error('좋아요 취소 오류:', err);
-      return res.status(500).send('서버 내부 오류.');
+      console.error('프로필 업데이트 오류:', err);
+      return res.status(500).send('서버 오류');
     }
-    res.status(200).send('좋아요 취소 성공.');
+    res.status(200).send('프로필 업데이트 성공');
   });
 });
 
-// 좋아요 상태 조회
-app.get('/posts/liked/:userId', (req, res) => {
-  const { userId } = req.params;
 
-  const query = 'SELECT postId FROM likes WHERE email = ?';
+// 프로필 정보 가져오기
+app.get('/profile/:email', (req, res) => {
+  const { email } = req.params;
+  const query = 'SELECT name, profileImage FROM userdata WHERE email = ?';
 
-  db.query(query, [userId], (err, results) => {
+  db.query(query, [email], (err, results) => {
     if (err) {
-      console.error('좋아요 상태 조회 오류:', err);
-      return res.status(500).json({ error: '서버 내부 오류.' });
+      console.error('데이터베이스 쿼리 오류:', err);
+      return res.status(500).send('서버 오류.');
     }
-
-    const likedPostIds = results.map(row => row.postId);
-    res.json(likedPostIds);
+    if (results.length === 0) {
+      return res.status(404).send('사용자를 찾을 수 없습니다.');
+    }
+    res.json(results[0]);
   });
 });
+
+// 프로필 정보 업데이트
+app.post('/profile/update', (req, res) => {
+  const { email, name, profileImage } = req.body;
+
+  if (!email || !name || !profileImage) {
+    return res.status(400).send('이메일, 이름, 프로필 이미지 URI는 필수입니다.');
+  }
+
+  const query = 'UPDATE userdata SET name = ?, profileImage = ? WHERE email = ?';
+
+  db.query(query, [name, profileImage, email], (err) => {
+    if (err) {
+      console.error('데이터베이스 업데이트 오류:', err);
+      return res.status(500).send('서버 오류.');
+    }
+    res.status(200).send('프로필 업데이트 성공.');
+  });
+});
+
+
+
+// // 좋아요 처리
+// app.post('/posts/like/:postId', (req, res) => {
+//   const { userId } = req.body;
+//   const { postId } = req.params;
+
+//   const query = 'INSERT INTO likes (email, postId) VALUES (?, ?)';
+
+//   db.query(query, [userId, postId], (err) => {
+//     if (err) {
+//       console.error('좋아요 처리 오류:', err);
+//       return res.status(500).send('서버 내부 오류.');
+//     }
+//     res.status(200).send('좋아요 처리 성공.');
+//   });
+// });
+
+// // 좋아요 취소
+// app.post('/posts/unlike/:postId', (req, res) => {
+//   const { userId } = req.body;
+//   const { postId } = req.params;
+
+//   const query = 'DELETE FROM likes WHERE email = ? AND postId = ?';
+
+//   db.query(query, [userId, postId], (err) => {
+//     if (err) {
+//       console.error('좋아요 취소 오류:', err);
+//       return res.status(500).send('서버 내부 오류.');
+//     }
+//     res.status(200).send('좋아요 취소 성공.');
+//   });
+// });
+
+// // 좋아요 상태 조회
+// app.get('/posts/liked/:userId', (req, res) => {
+//   const { userId } = req.params;
+
+//   const query = 'SELECT postId FROM likes WHERE email = ?';
+
+//   db.query(query, [userId], (err, results) => {
+//     if (err) {
+//       console.error('좋아요 상태 조회 오류:', err);
+//       return res.status(500).json({ error: '서버 내부 오류.' });
+//     }
+
+//     const likedPostIds = results.map(row => row.postId);
+//     res.json(likedPostIds);
+//   });
+// });
 
 
 // 게시물 업로드
@@ -206,6 +271,52 @@ app.post('/login', (req, res) => {
         return res.status(401).send("잘못된 이메일 또는 비밀번호.");
       }
     });
+  });
+});
+
+
+
+app.get('/posts/:postId/comments', (req, res) => {
+  const { postId } = req.params;
+  const query = 'SELECT * FROM comments WHERE postId = ?';
+
+  db.query(query, [postId], (err, results) => {
+    if (err) {
+      console.error('Error fetching comments:', err);
+      return res.status(500).send('Server error.');
+    }
+    res.json(results);
+  });
+});
+
+app.post('/posts/:postId/comments', (req, res) => {
+  const { postId } = req.params;
+  const { email, comment } = req.body;
+
+  if (!email || !comment) {
+    return res.status(400).send('Email and comment are required.');
+  }
+
+  const query = 'INSERT INTO comments (postId, email, comment) VALUES (?, ?, ?)';
+  db.query(query, [postId, email, comment], (err, results) => {
+    if (err) {
+      console.error('Error adding comment:', err);
+      return res.status(500).send('Server error.');
+    }
+    res.status(201).json({ message: 'Comment added.', commentId: results.insertId });
+  });
+});
+
+app.delete('/posts/:postId/comments/:commentId', (req, res) => {
+  const { postId, commentId } = req.params;
+
+  const query = 'DELETE FROM comments WHERE id = ? AND postId = ?';
+  db.query(query, [commentId, postId], (err) => {
+    if (err) {
+      console.error('Error deleting comment:', err);
+      return res.status(500).send('Server error.');
+    }
+    res.status(200).send('Comment deleted.');
   });
 });
 

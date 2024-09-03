@@ -18,11 +18,7 @@ const LoginScreen = ({ navigation }) => {
       try {
         const response = await axios.post(`${apiUrl}/login`, { email, password });
         console.log('로그인 성공:', response.data);
-        navigation.navigate('HomeTabs', {
-          screen: 'HomeScreen',
-          params: { email }, // Pass email here
-        });
-        
+        navigation.navigate('HomeTabs', { email });
       } catch (error) {
         console.error('로그인 실패:', error);
         Alert.alert("이메일과 비밀번호를 확인해주세요");
@@ -32,7 +28,7 @@ const LoginScreen = ({ navigation }) => {
       setSignInEnabled(false);
     }
   };
-  
+
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };

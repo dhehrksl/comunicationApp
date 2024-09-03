@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, FlatList, Image, StyleSheet, Dimensions, TextInput, TouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const HomeScreen = () => {
+const HomeScreen = ({ route }) => {
+  const { email,name, profileImage } = route.params || {};
+  console.log('HomeScreen email:', email);
+  console.log('HomeScreen profileImage:', profileImage);
+
   const [posts, setPosts] = useState([]);
   const [expandedPostId, setExpandedPostId] = useState(null);
   const [likedPosts, setLikedPosts] = useState(new Set());
   const navigation = useNavigation();
-  const route = useRoute();
-  const { email } = route.params || {};
-  console.log('HomeScreen email:', email);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -32,73 +33,80 @@ const HomeScreen = () => {
       }
     };
 
-    const fetchLikedPosts = async () => {
-      try {
-        const userId = 'currentUserId';
-        const response = await fetch(`http://192.168.0.27:3309/posts/liked/${userId}`);
-        if (response.ok) {
-          const likedPostIds = await response.json();
-          setLikedPosts(new Set(likedPostIds));
-        } else {
-          console.error('응답 오류:', response.status, await response.text());
-        }
-      } catch (error) {
-        console.error('좋아요 상태 조회 오류:', error);
-      }
-    };
+    // const fetchLikedPosts = async () => {
+    //   try {
+    //     const response = await fetch(`http://192.168.0.27:3309/posts/liked/${email}`);
+    //     if (response.ok) {
+    //       const likedPostIds = await response.json();
+    //       setLikedPosts(new Set(likedPostIds));
+    //     } else {
+    //       console.error('응답 오류:', response.status, await response.text());
+    //     }
+    //   } catch (error) {
+    //     console.error('좋아요 상태 조회 오류:', error);
+    //   }
+    // };
 
     fetchPosts();
-    fetchLikedPosts();
-  }, []);
+    // fetchLikedPosts();
+  }, [email]);
 
-  const handleLike = async (postId) => {
-    try {
-      const isLiked = likedPosts.has(postId);
-      const url = `http://192.168.0.27:3309/posts/${isLiked ? 'unlike' : 'like'}/${postId}`;
-      console.log(url);
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: email }) 
-      });
-
-      if (isLiked) {
-        setLikedPosts(prev => {
-          const updated = new Set(prev);
-          updated.delete(postId);
-          return updated;
-        });
-        setPosts(prevPosts =>
-          prevPosts.map(post =>
-            post.id === postId ? { ...post, likesCount: post.likesCount - 1 } : post
-          )
-        );
-      } else {
-        setLikedPosts(prev => new Set(prev).add(postId));
-        setPosts(prevPosts =>
-          prevPosts.map(post =>
-            post.id === postId ? { ...post, likesCount: post.likesCount + 1 } : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('좋아요 처리 오류:', error);
-    }
-  };
-
+  // const handleLike = async (postId) => {
+  //   console.log(posts);
+  //   console.log(postId)
+  //   try {
+  //     if (postId === undefined || postId === null) {
+  //       console.error('postId가 정의되지 않았습니다.');
+  //       return;
+  //     }
+  
+  //     const isLiked = likedPosts.has(postId);
+  //     const url = `http://192.168.0.27:3309/posts/${isLiked ? 'unlike' : 'like'}/${postId}`;
+  //     console.log(url);
+  
+  //     await fetch(url, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ userId: email })
+  //     });
+  
+  //     if (isLiked) {
+  //       setLikedPosts(prev => {
+  //         const updated = new Set(prev);
+  //         updated.delete(postId);
+  //         return updated;
+  //       });
+  //       setPosts(prevPosts =>
+  //         prevPosts.map(post =>
+  //           post.id === postId ? { ...post, likesCount: post.likesCount - 1 } : post
+  //         )
+  //       );
+  //     } else {
+  //       setLikedPosts(prev => new Set(prev).add(postId));
+  //       setPosts(prevPosts =>
+  //         prevPosts.map(post =>
+  //           post.id === postId ? { ...post, likesCount: post.likesCount + 1 } : post
+  //         )
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error('좋아요 처리 오류:', error);
+  //   }
+  // };
+  
   const renderItem = ({ item }) => {
     const isExpanded = item.id === expandedPostId;
     const isLiked = likedPosts.has(item.id);
     const comments = Array.isArray(item.comments) ? item.comments : [];
-
+    console.log(item);
     return (
       <View style={styles.postContainer}>
         <View style={styles.header}>
-          <Text style={styles.username}>User</Text>
+          <Text style={styles.username}>{item.email}</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('PostDetailsScreen', { post: item })}>
+        <TouchableOpacity onPress={() => navigation.navigate('PostDetailsScreen', { post: item, email : email, postid : item.postid })}>
           <Image source={{ uri: item.imageUri }} style={styles.postImage} />
         </TouchableOpacity>
         <Text style={styles.description}>{item.description}</Text>
@@ -142,8 +150,8 @@ const HomeScreen = () => {
       renderItem={renderItem}
       keyExtractor={item => item.id ? item.id.toString() : Math.random().toString()}
     />
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   postContainer: {

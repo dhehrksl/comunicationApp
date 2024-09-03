@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, Button, TextInput, Image, StyleSheet, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadImageToServer, postToDatabase } from '../server/api';
-import { useRoute } from '@react-navigation/native';
 
-const AddScreen = () => {
-  const route = useRoute();
+const AddScreen = ({ route }) => {
   const { email } = route.params || {};
-  console.log('HomeScreen email:', email);
+  console.log('add email:', email);
+
   const [imageUri, setImageUri] = useState(null);
   const [caption, setCaption] = useState('');
+  const [title, setTitle] = useState('');
 
   const handleSelectImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,10 +33,11 @@ const AddScreen = () => {
   const handlePost = async () => {
     try {
       const imageUrl = await uploadImageToServer(imageUri);
-      await postToDatabase({ imageUri: imageUrl, title: 'Post Title', description: caption, email });
+      await postToDatabase({ imageUri: imageUrl, email : email ,title: title, description: caption, email });
       alert('게시물이 성공적으로 작성되었습니다!');
       setImageUri(null);
       setCaption('');
+      setTitle('');
     } catch (error) {
       console.error('게시물 생성 오류:', error);
       alert('게시물 생성에 실패했습니다. ' + error.message);
@@ -49,8 +50,8 @@ const AddScreen = () => {
       <TextInput
         style={styles.inputTitle}
         placeholder="제목"
-        value={caption}
-        onChangeText={setCaption}
+        value={title}
+        onChangeText={setTitle}
       />
       {imageUri && (
         <Image source={{ uri: imageUri }} style={styles.image} />

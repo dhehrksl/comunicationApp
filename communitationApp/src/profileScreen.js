@@ -1,36 +1,83 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
+import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const numColumns = 3;
 
-const ProfileScreen = () => {
-  const posts = [
-    'https://health.chosun.com/site/data/img_dir/2023/01/10/2023011001501_0.jpg',
-    'http://news.samsungdisplay.com/wp-content/uploads/2018/08/SDC%EB%89%B4%EC%8A%A4%EB%A3%B8_%EC%82%AC%EC%A7%848%ED%8E%B8_180806_%EB%8F%84%EB%B9%84%EB%9D%BC.png',
-    'https://www.example.com/post3.jpg',
-    'https://www.example.com/post4.jpg',
-    'https://www.example.com/post5.jpg',
-    'https://www.example.com/post6.jpg',
-  ];
+const ProfileScreen = ({ route, navigation }) => {
+  const { email } = route.params || {};
+  const [profileImage, setProfileImage] = useState('');
+  const [username, setUsername] = useState('');
+  const [userPosts, setUserPosts] = useState([]);
+  const fetchProfileData = async () => {
+    try {
+      const response = await axios.get(`http://192.168.0.27:3309/profile/${email}`);
+      const responseListData = await axios.get(`http://192.168.0.27:3309/allPosts/${email}`);
+      console.log(responseListData.data);
+
+      setUserPosts(responseListData.data);
+      setProfileImage(response.data.profileImage || ''); 
+      setUsername(response.data.name || '');
+    } catch (error) {
+      console.error('프로필 데이터 가져오기 오류:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [email]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProfileData();
+    }, [email])
+  );
 
   const handleEditProfile = () => {
-    alert('Edit Profile');
+    navigation.navigate('EditProfileScreen', { email, profileImage, username });
   };
 
   const handleLogout = () => {
-    alert('Logged Out');
+    Alert.alert('Logged Out');
+  };
+
+  const handleImagePick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission to access media library is required.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  const handleImagePress = (post) => {
+    navigation.navigate('PostDetailsScreen', { post });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.profileHeader}>
-        <Image
-          source={{ uri: 'https://health.chosun.com/site/data/img_dir/2023/01/10/2023011001501_0.jpg' }}
-          style={styles.profileImage}
-        />
-        <Text style={styles.username}>프로필</Text>
+        <TouchableOpacity onPress={handleImagePick}>
+          <Image
+            source={{ uri: profileImage || 'https://via.placeholder.com/120' }}
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
+        <Text style={styles.username}>{username || 'No Username'}</Text>
         <TouchableOpacity style={styles.button} onPress={handleEditProfile}>
           <FontAwesome name="edit" size={16} color="white" />
           <Text style={styles.buttonText}>Edit Profile</Text>
@@ -41,8 +88,10 @@ const ProfileScreen = () => {
         </TouchableOpacity>
       </View>
       <View style={styles.postsGrid}>
-        {posts.map((uri, index) => (
-          <Image key={index} source={{ uri }} style={styles.postImage} />
+        {userPosts.map((post, index) => (
+          <TouchableOpacity key={index} onPress={() => handleImagePress(post)}>
+            <Image source={{ uri: post.imageUri }} style={styles.postImage} />
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -71,12 +120,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginTop: 10,
-  },
-  bio: {
-    fontSize: 16,
-    color: '#666',
-    marginVertical: 5,
-    textAlign: 'center',
   },
   button: {
     flexDirection: 'row',

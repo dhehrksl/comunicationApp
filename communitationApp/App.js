@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,7 +9,7 @@ import HomeScreen from './src/homePage';
 import ProfileScreen from './src/profileScreen';
 import AddScreen from './src/addScreen';
 import PostDetailsScreen from './src/postDetails';
-
+import EditProfileScreen from './src/editProfileScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -24,13 +24,13 @@ const CustomTabBarButton = ({ children, onPress }) => (
 
 const HomeTabNavigator = ({ route, navigation }) => {
   const { email } = route.params || {};
-  console.log("email", email);
+
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen 
         name="HomeScreen" 
         component={HomeScreen}
-        initialParams={{ route }}
+        initialParams={{ email }}
         options={{ 
           tabBarLabel: '홈', 
           tabBarIcon: ({ color, size }) => (
@@ -50,11 +50,19 @@ const HomeTabNavigator = ({ route, navigation }) => {
             <Image
               style={{ width: size, height: size, tintColor: color }}
             />
+          ),
+          tabBarButton: (props) => (
+            <CustomTabBarButton
+              {...props}
+              onPress={() => navigation.navigate('Profile', { email })}
+            />
           )
         }} 
       />
- <Tab.Screen
+      <Tab.Screen
         name="AddScreen"
+        component={AddScreen}
+        initialParams={{ email }}
         options={{
           tabBarLabel: '추가',
           tabBarIcon: ({ color, size }) => (
@@ -65,16 +73,16 @@ const HomeTabNavigator = ({ route, navigation }) => {
           tabBarButton: (props) => (
             <CustomTabBarButton
               {...props}
-              onPress={() => navigation.navigate('Profile')} // Navigate to Profile on press
+              onPress={() => navigation.navigate('AddScreen', { email })}
             />
           ),
         }}
-      >
-        {() => <AddScreen email={email} />}
-      </Tab.Screen>
+      />
     </Tab.Navigator>
   );
 };
+
+
 
 export default function App() {
   return (
@@ -87,6 +95,8 @@ export default function App() {
           component={HomeTabNavigator}
         />
         <Stack.Screen name="PostDetailsScreen" component={PostDetailsScreen} />
+        <Stack.Screen name="EditProfileScreen"
+        component={EditProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
